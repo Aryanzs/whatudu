@@ -40,12 +40,13 @@ export const chatCompletion = async (prompt: string): Promise<string> => {
     }
 
     if (response?.message?.content) {
-      return response.message.content;
+      const content = response.message.content;
+      return typeof content === "string" ? content : JSON.stringify(content);
     }
 
     // Fallback: try to extract text from response
-    if (response?.text) {
-      return response.text;
+    if ((response as Record<string, unknown>)?.text) {
+      return String((response as Record<string, unknown>).text);
     }
 
     // If response is an object, stringify it

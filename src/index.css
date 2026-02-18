@@ -772,7 +772,51 @@ textarea.form-input {
 .time-block-actions {
   display: flex;
   gap: 4px;
-  margin-top: 8px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.time-block:hover .time-block-actions {
+  opacity: 1;
+}
+
+/* ─── Drag & Drop ─── */
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  cursor: grab;
+  padding: 2px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.drag-handle:hover {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.time-block.dragging {
+  opacity: 0.4;
+  transform: scale(0.98);
+}
+
+.time-block.dragging .time-block-card {
+  box-shadow: var(--shadow-md);
+}
+
+.time-block.drag-over .time-block-card {
+  border-top: 2px solid var(--accent);
+  margin-top: -1px;
+  background: var(--accent-light);
 }
 
 /* ─── Saved Timetables ─── */

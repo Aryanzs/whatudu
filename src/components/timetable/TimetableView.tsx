@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { Sparkles, Save, Calendar, Loader2 } from "lucide-react";
 import { useTimetableStore } from "../../stores/timetableStore";
 import { useTaskStore } from "../../stores/taskStore";
@@ -18,10 +19,31 @@ export const TimetableView = () => {
     setTimetable,
     setChatMessages,
     saveTimetable,
+    reorderBlocks,
   } = useTimetableStore();
 
   const getActiveTasks = useTaskStore((s) => s.getActiveTasks);
   const activeTasks = getActiveTasks();
+
+  // ── Drag state ──
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
+
+  const handleDragStart = useCallback((index: number) => {
+    setDragIndex(index);
+  }, []);
+
+  const handleDragEnter = useCallback((index: number) => {
+    setDropIndex(index);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    if (dragIndex !== null && dropIndex !== null && dragIndex !== dropIndex) {
+      reorderBlocks(dragIndex, dropIndex);
+    }
+    setDragIndex(null);
+    setDropIndex(null);
+  }, [dragIndex, dropIndex, reorderBlocks]);
 
   const handleRegenerate = async () => {
     if (activeTasks.length === 0) return;
@@ -138,10 +160,14 @@ export const TimetableView = () => {
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {timetable.map((block, i) => (
               <TimeBlock
-                key={`${block.startTime}-${i}`}
+                key={`${block.taskTitle}-${i}`}
                 block={block}
                 index={i}
-                total={timetable.length}
+                isDragging={dragIndex === i}
+                isDragOver={dropIndex === i && dragIndex !== i}
+                onDragStart={handleDragStart}
+                onDragEnter={handleDragEnter}
+                onDragEnd={handleDragEnd}
               />
             ))}
           </div>

@@ -3,6 +3,23 @@ import { persist } from "zustand/middleware";
 import type { TimeBlock, SavedTimetable, ChatMessage } from "../types";
 import { generateId, timeToMinutes, minutesToTime } from "../lib/utils";
 
+/** Recalculate start/end times for all blocks so they flow consecutively */
+const recalculateTimes = (blocks: TimeBlock[]): TimeBlock[] => {
+  if (blocks.length === 0) return blocks;
+  let currentTime = blocks[0].startTime;
+  return blocks.map((block) => {
+    const duration = timeToMinutes(block.endTime) - timeToMinutes(block.startTime);
+    const startMin = timeToMinutes(currentTime);
+    const updated = {
+      ...block,
+      startTime: currentTime,
+      endTime: minutesToTime(startMin + duration),
+    };
+    currentTime = updated.endTime;
+    return updated;
+  });
+};
+
 interface TimetableState {
   timetable: TimeBlock[];
   savedTimetables: SavedTimetable[];
@@ -13,6 +30,7 @@ interface TimetableState {
   // Actions
   setTimetable: (blocks: TimeBlock[]) => void;
   moveBlock: (index: number, direction: -1 | 1) => void;
+  reorderBlocks: (fromIndex: number, toIndex: number) => void;
   deleteBlock: (index: number) => void;
   saveTimetable: () => void;
   loadSavedTimetable: (id: string) => void;
@@ -44,24 +62,27 @@ export const useTimetableStore = create<TimetableState>()(
 
         const newTT = [...timetable];
         [newTT[index], newTT[targetIndex]] = [newTT[targetIndex], newTT[index]];
+        set({ timetable: recalculateTimes(newTT) });
+      },
 
-        // Recalculate times after swap
-        let currentTime = newTT[0]?.startTime || "09:00";
-        newTT.forEach((block) => {
-          const duration = timeToMinutes(block.endTime) - timeToMinutes(block.startTime);
-          const startMin = timeToMinutes(currentTime);
-          block.startTime = currentTime;
-          block.endTime = minutesToTime(startMin + duration);
-          currentTime = block.endTime;
-        });
+      reorderBlocks: (fromIndex, toIndex) => {
+        const { timetable } = get();
+        if (
+          fromIndex === toIndex ||
+          fromIndex < 0 || fromIndex >= timetable.length ||
+          toIndex < 0 || toIndex >= timetable.length
+        ) return;
 
-        set({ timetable: newTT });
+        const newTT = [...timetable];
+        const [moved] = newTT.splice(fromIndex, 1);
+        newTT.splice(toIndex, 0, moved);
+        set({ timetable: recalculateTimes(newTT) });
       },
 
       deleteBlock: (index) => {
-        set((state) => ({
-          timetable: state.timetable.filter((_, i) => i !== index),
-        }));
+        const { timetable } = get();
+        const newTT = timetable.filter((_, i) => i !== index);
+        set({ timetable: recalculateTimes(newTT) });
       },
 
       saveTimetable: () => {
