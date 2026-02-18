@@ -1,12 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Task, TaskFormData, FilterType } from "../types";
-import { generateId } from "../lib/utils";
+import { generateId, toDateString } from "../lib/utils";
 
 interface TaskState {
   tasks: Task[];
   filter: FilterType;
   searchQuery: string;
+  selectedDate: string; // YYYY-MM-DD
 
   // Actions
   addTask: (data: TaskFormData) => void;
@@ -15,6 +16,7 @@ interface TaskState {
   toggleTask: (id: string) => void;
   setFilter: (filter: FilterType) => void;
   setSearchQuery: (query: string) => void;
+  setSelectedDate: (date: string) => void;
   clearAll: () => void;
 
   // Computed (use these via selectors)
@@ -23,12 +25,16 @@ interface TaskState {
   getStats: () => { total: number; active: number; done: number };
 }
 
+/** Helper: get the effective date for a task (backward compat for old tasks without date) */
+const taskDate = (task: Task): string => task.date || toDateString();
+
 export const useTaskStore = create<TaskState>()(
   persist(
     (set, get) => ({
       tasks: [],
       filter: "all",
       searchQuery: "",
+      selectedDate: toDateString(),
 
       addTask: (data) => {
         const task: Task = {
@@ -66,12 +72,14 @@ export const useTaskStore = create<TaskState>()(
 
       setFilter: (filter) => set({ filter }),
       setSearchQuery: (searchQuery) => set({ searchQuery }),
+      setSelectedDate: (selectedDate) => set({ selectedDate }),
 
       clearAll: () => set({ tasks: [], filter: "all", searchQuery: "" }),
 
       getFilteredTasks: () => {
-        const { tasks, filter, searchQuery } = get();
-        let result = tasks;
+        const { tasks, filter, searchQuery, selectedDate } = get();
+        // First: scope to selected date
+        let result = tasks.filter((t) => taskDate(t) === selectedDate);
 
         // Filter by status or priority
         if (filter !== "all") {
@@ -94,15 +102,17 @@ export const useTaskStore = create<TaskState>()(
       },
 
       getActiveTasks: () => {
-        return get().tasks.filter((t) => t.status !== "done");
+        const { tasks, selectedDate } = get();
+        return tasks.filter((t) => taskDate(t) === selectedDate && t.status !== "done");
       },
 
       getStats: () => {
-        const { tasks } = get();
+        const { tasks, selectedDate } = get();
+        const dateTasks = tasks.filter((t) => taskDate(t) === selectedDate);
         return {
-          total: tasks.length,
-          active: tasks.filter((t) => t.status !== "done").length,
-          done: tasks.filter((t) => t.status === "done").length,
+          total: dateTasks.length,
+          active: dateTasks.filter((t) => t.status !== "done").length,
+          done: dateTasks.filter((t) => t.status === "done").length,
         };
       },
     }),
@@ -111,3 +121,4 @@ export const useTaskStore = create<TaskState>()(
     }
   )
 );
+

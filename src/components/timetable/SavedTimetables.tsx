@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 import { useTimetableStore } from "../../stores/timetableStore";
+import { formatDateLabel } from "../../lib/utils";
 
 export const SavedTimetables = () => {
   const { savedTimetables, loadSavedTimetable, deleteSavedTimetable } =
@@ -29,7 +30,7 @@ export const SavedTimetables = () => {
         >
           <div>
             <div style={{ fontSize: 14, fontWeight: 500 }}>
-              {new Date(s.savedAt).toLocaleDateString("en-US", {
+              {s.date ? formatDateLabel(s.date) : new Date(s.savedAt).toLocaleDateString("en-US", {
                 weekday: "short",
                 month: "short",
                 day: "numeric",

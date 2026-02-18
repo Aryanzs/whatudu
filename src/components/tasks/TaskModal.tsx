@@ -13,6 +13,7 @@ interface TaskModalProps {
 
 export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) => {
   const { tasks, addTask, updateTask } = useTaskStore();
+  const selectedDate = useTaskStore((s) => s.selectedDate);
   const editingTask = editingTaskId ? tasks.find((t) => t.id === editingTaskId) : null;
 
   const [title, setTitle] = useState("");
@@ -56,6 +57,7 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
       description: description.trim(),
       priority,
       estimatedMinutes: finalMinutes,
+      date: editingTask?.date || selectedDate,
     };
 
     if (editingTask) {

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TimeBlock, SavedTimetable, ChatMessage } from "../types";
 import { generateId, timeToMinutes, minutesToTime } from "../lib/utils";
+import { useTaskStore } from "./taskStore";
 
 /** Recalculate start/end times for all blocks so they flow consecutively */
 const recalculateTimes = (blocks: TimeBlock[]): TimeBlock[] => {
@@ -89,10 +90,12 @@ export const useTimetableStore = create<TimetableState>()(
         const { timetable } = get();
         if (timetable.length === 0) return;
 
+        const selectedDate = useTaskStore.getState().selectedDate;
         const saved: SavedTimetable = {
           id: generateId(),
           timetable: [...timetable],
           savedAt: Date.now(),
+          date: selectedDate,
           taskCount: timetable.filter(
             (b) => !b.taskTitle.toLowerCase().includes("break") && !b.taskTitle.toLowerCase().includes("lunch")
           ).length,

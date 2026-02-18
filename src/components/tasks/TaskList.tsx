@@ -1,10 +1,11 @@
-import { Sparkles, ListTodo, Loader2 } from "lucide-react";
+import { useRef } from "react";
+import { Sparkles, ListTodo, Loader2, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { useTaskStore } from "../../stores/taskStore";
 import { useTimetableStore } from "../../stores/timetableStore";
 import { useSettingsStore } from "../../stores/settingsStore";
 import { chatCompletion } from "../../services/ai";
 import { buildTimetablePrompt } from "../../lib/prompts";
-import { safeParseJSON } from "../../lib/utils";
+import { safeParseJSON, toDateString, formatDateLabel } from "../../lib/utils";
 import { TaskCard } from "./TaskCard";
 import { TaskFilters } from "./TaskFilters";
 import type { TimeBlock } from "../../types";
@@ -19,14 +20,31 @@ export const TaskList = ({ onAddTask, onEditTask }: TaskListProps) => {
   const getFilteredTasks = useTaskStore((s) => s.getFilteredTasks);
   const getStats = useTaskStore((s) => s.getStats);
   const getActiveTasks = useTaskStore((s) => s.getActiveTasks);
+  const selectedDate = useTaskStore((s) => s.selectedDate);
+  const setSelectedDate = useTaskStore((s) => s.setSelectedDate);
 
   const { isGenerating, setIsGenerating, setTimetable, setChatMessages } =
     useTimetableStore();
   const { setActiveTab } = useSettingsStore();
 
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
   const stats = getStats();
   const filtered = getFilteredTasks();
   const activeTasks = getActiveTasks();
+
+  // ── Date navigation ──
+  const shiftDate = (days: number) => {
+    const d = new Date(selectedDate + "T00:00:00");
+    d.setDate(d.getDate() + days);
+    setSelectedDate(toDateString(d));
+  };
+
+  const goToToday = () => setSelectedDate(toDateString());
+
+  const handleDatePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value) setSelectedDate(e.target.value);
+  };
 
   const handleGenerate = async () => {
     if (activeTasks.length === 0) return;
@@ -64,6 +82,17 @@ export const TaskList = ({ onAddTask, onEditTask }: TaskListProps) => {
     setIsGenerating(false);
   };
 
+  const isToday = selectedDate === toDateString();
+  const dateLabel = formatDateLabel(selectedDate);
+
+  // Format the full date for subtitle
+  const fullDate = new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
   return (
     <div>
       {/* Header */}
@@ -96,6 +125,49 @@ export const TaskList = ({ onAddTask, onEditTask }: TaskListProps) => {
         </div>
       </div>
 
+      {/* Date Picker Strip */}
+      <div className="date-picker-strip">
+        <button
+          className="btn btn-ghost btn-icon btn-sm"
+          onClick={() => shiftDate(-1)}
+          aria-label="Previous day"
+        >
+          <ChevronLeft size={18} />
+        </button>
+
+        <button
+          className="date-label-btn"
+          onClick={() => dateInputRef.current?.showPicker?.()}
+          title={fullDate}
+        >
+          <Calendar size={14} />
+          <span className="date-label-text">{dateLabel}</span>
+          <span className="date-label-full">{!isToday ? ` · ${fullDate.split(",").slice(0, 2).join(",")}` : ""}</span>
+          <input
+            ref={dateInputRef}
+            type="date"
+            className="date-picker-hidden"
+            value={selectedDate}
+            onChange={handleDatePick}
+            tabIndex={-1}
+          />
+        </button>
+
+        <button
+          className="btn btn-ghost btn-icon btn-sm"
+          onClick={() => shiftDate(1)}
+          aria-label="Next day"
+        >
+          <ChevronRight size={18} />
+        </button>
+
+        {!isToday && (
+          <button className="btn btn-sm" onClick={goToToday} style={{ marginLeft: 8 }}>
+            Today
+          </button>
+        )}
+      </div>
+
       {/* Filters */}
       <TaskFilters />
 
@@ -105,10 +177,10 @@ export const TaskList = ({ onAddTask, onEditTask }: TaskListProps) => {
           <div className="empty-icon">
             <ListTodo size={28} />
           </div>
-          <h3>{tasks.length === 0 ? "No tasks yet" : "No matching tasks"}</h3>
+          <h3>{tasks.length === 0 && stats.total === 0 ? "No tasks yet" : "No matching tasks"}</h3>
           <p>
-            {tasks.length === 0
-              ? "Add your first task and let AI build your perfect schedule."
+            {stats.total === 0
+              ? `Add your first task for ${dateLabel.toLowerCase() === "today" ? "today" : dateLabel} and let AI build your perfect schedule.`
               : "Try adjusting your filters or search query."}
           </p>
         </div>

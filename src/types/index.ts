@@ -10,6 +10,7 @@ export interface Task {
   priority: Priority;
   estimatedMinutes: number;
   status: TaskStatus;
+  date: string; // YYYY-MM-DD — the day this task is scheduled for
   category?: string;
   tags?: string[];
   dueDate?: string;
@@ -22,6 +23,7 @@ export interface TaskFormData {
   description: string;
   priority: Priority;
   estimatedMinutes: number;
+  date: string; // YYYY-MM-DD
 }
 
 // ─── Timetable Types ────────────────────────────────────────────────
@@ -38,6 +40,7 @@ export interface SavedTimetable {
   timetable: TimeBlock[];
   savedAt: number;
   taskCount: number;
+  date?: string; // YYYY-MM-DD — the date this timetable was generated for
   label?: string;
 }
 

@@ -67,3 +67,38 @@ export const truncate = (text: string, maxLength: number): string => {
  */
 export const cn = (...classes: (string | false | undefined | null)[]): string =>
   classes.filter(Boolean).join(" ");
+
+/**
+ * Get YYYY-MM-DD string from a Date (defaults to today)
+ */
+export const toDateString = (date: Date = new Date()): string => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+/**
+ * Format a YYYY-MM-DD string into a human-friendly label
+ * Returns "Today", "Tomorrow", "Yesterday", or "Wed, Feb 19"
+ */
+export const formatDateLabel = (dateStr: string): string => {
+  const today = toDateString();
+  if (dateStr === today) return "Today";
+
+  const todayDate = new Date(today + "T00:00:00");
+  const tomorrow = new Date(todayDate);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (dateStr === toDateString(tomorrow)) return "Tomorrow";
+
+  const yesterday = new Date(todayDate);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (dateStr === toDateString(yesterday)) return "Yesterday";
+
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+};
