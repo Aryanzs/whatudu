@@ -23,6 +23,7 @@ const recalculateTimes = (blocks: TimeBlock[]): TimeBlock[] => {
 
 interface TimetableState {
   timetable: TimeBlock[];
+  timetableDate: string | null;
   savedTimetables: SavedTimetable[];
   chatMessages: ChatMessage[];
   isGenerating: boolean;
@@ -30,6 +31,8 @@ interface TimetableState {
 
   // Actions
   setTimetable: (blocks: TimeBlock[]) => void;
+  setTimetableDate: (date: string | null) => void;
+  addBlock: (block: TimeBlock) => void;
   moveBlock: (index: number, direction: -1 | 1) => void;
   reorderBlocks: (fromIndex: number, toIndex: number) => void;
   deleteBlock: (index: number) => void;
@@ -47,6 +50,7 @@ export const useTimetableStore = create<TimetableState>()(
   persist(
     (set, get) => ({
       timetable: [],
+      timetableDate: null,
       savedTimetables: [],
       chatMessages: [
         { role: "system", content: "Generate a timetable first, then ask me to rearrange it." },
@@ -55,6 +59,8 @@ export const useTimetableStore = create<TimetableState>()(
       isChatLoading: false,
 
       setTimetable: (blocks) => set({ timetable: blocks }),
+      setTimetableDate: (date) => set({ timetableDate: date }),
+      addBlock: (block) => set((state) => ({ timetable: [...state.timetable, block] })),
 
       moveBlock: (index, direction) => {
         const { timetable } = get();
@@ -133,6 +139,7 @@ export const useTimetableStore = create<TimetableState>()(
       clearTimetable: () =>
         set({
           timetable: [],
+          timetableDate: null,
           chatMessages: [
             { role: "system", content: "Generate a timetable first, then ask me to rearrange it." },
           ],
@@ -142,6 +149,7 @@ export const useTimetableStore = create<TimetableState>()(
       name: "whatodo-timetable",
       partialize: (state) => ({
         timetable: state.timetable,
+        timetableDate: state.timetableDate,
         savedTimetables: state.savedTimetables,
       }),
     }

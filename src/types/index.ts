@@ -2,6 +2,7 @@
 
 export type Priority = "critical" | "high" | "medium" | "low";
 export type TaskStatus = "todo" | "in-progress" | "done";
+export type TimePreference = "morning" | "afternoon" | "evening";
 
 export interface Task {
   id: string;
@@ -16,6 +17,7 @@ export interface Task {
   dueDate?: string;
   createdAt: number;
   updatedAt?: number;
+  timePreference?: TimePreference;
 }
 
 export interface TaskFormData {
@@ -24,6 +26,7 @@ export interface TaskFormData {
   priority: Priority;
   estimatedMinutes: number;
   date: string; // YYYY-MM-DD
+  timePreference?: TimePreference;
 }
 
 // ─── Timetable Types ────────────────────────────────────────────────

@@ -123,6 +123,18 @@ body {
   animation: spin 1s linear infinite;
 }
 
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    APP LAYOUT
    ═══════════════════════════════════════════════════════════════════ */
@@ -1245,6 +1257,289 @@ textarea.form-input {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   TOASTS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: 360px;
+  width: 100%;
+}
+
+.toast-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  pointer-events: all;
+  animation: slideInRight 0.2s ease;
+  min-width: 240px;
+}
+
+.toast-success {
+  border-left: 3px solid var(--low);
+}
+
+.toast-error {
+  border-left: 3px solid var(--critical);
+}
+
+.toast-info {
+  border-left: 3px solid var(--accent);
+}
+
+.toast-success .toast-icon {
+  color: var(--low);
+}
+
+.toast-error .toast-icon {
+  color: var(--critical);
+}
+
+.toast-info .toast-icon {
+  color: var(--accent);
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.toast-message {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.toast-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.toast-action-btn {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.toast-action-btn:hover {
+  background: var(--accent-light);
+}
+
+.toast-close-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  padding: 0;
+}
+
+.toast-close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ─── Time Preference Chips ─── */
+
+.form-label-optional {
+  font-weight: 400;
+  color: var(--text-tertiary);
+  margin-left: 4px;
+}
+
+.time-preference-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.time-pref-chip {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.time-pref-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+.time-pref-chip.selected {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.time-pref-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GENERATION PROGRESS
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes progressFill {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+.generation-progress {
+  padding: 20px 20px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+.generation-step {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.generation-progress-track {
+  height: 4px;
+  background: var(--bg-hover);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.generation-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #8b5cf6);
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* ─── Date Mismatch Banner ─── */
+
+.date-mismatch-banner {
+  padding: 10px 14px;
+  background: rgba(234, 88, 12, 0.07);
+  border: 1px solid rgba(234, 88, 12, 0.22);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--high);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.4;
+  animation: fadeIn 0.2s ease;
+}
+
+/* ─── Add Block Section ─── */
+
+.add-block-section {
+  margin-top: 16px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 14px;
+}
+
+.add-block-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.add-block-toggle-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.add-block-form {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.2s ease;
+}
+
+.add-block-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ─── Time Pref Badge (TaskCard) ─── */
+
+.time-pref-badge {
+  font-size: 12px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -1286,6 +1581,42 @@ textarea.form-input {
   .task-card {
     padding: 14px;
   }
+
+  .toast-container {
+    right: 0;
+    left: 0;
+    bottom: 16px;
+    max-width: 100%;
+    padding: 0 16px;
+    align-items: center;
+  }
+
+  .toast-item {
+    width: 100%;
+    max-width: 420px;
+    animation: slideUp 0.2s ease;
+  }
+
+  .filter-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-chip,
+  .search-input {
+    flex-shrink: 0;
+  }
+
+  .search-input {
+    min-width: 140px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1316,5 +1647,30 @@ textarea.form-input {
 
   .profile-chip {
     padding: 4px;
+  }
+
+  .modal {
+    max-height: 95vh;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-header {
+    padding: 16px 16px 0;
+  }
+
+  .modal-footer {
+    padding: 12px 16px;
+  }
+
+  .time-preference-selector {
+    gap: 6px;
+  }
+
+  .time-pref-chip {
+    font-size: 12px;
+    padding: 7px 6px;
   }
 }

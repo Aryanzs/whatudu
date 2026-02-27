@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Modal } from "../ui/Modal";
 import { useTaskStore } from "../../stores/taskStore";
+import { useToastStore } from "../../stores/toastStore";
 import { PRIORITIES, TIME_PRESETS } from "../../types";
-import type { Priority } from "../../types";
+import type { Priority, TimePreference } from "../../types";
 import { formatDuration } from "../../lib/utils";
 
 interface TaskModalProps {
@@ -65,9 +66,16 @@ const minutesToDisplay = (minutes: number): string => {
   return `${m}m`;
 };
 
+const TIME_PREF_OPTIONS: { value: TimePreference; label: string; icon: string }[] = [
+  { value: "morning", label: "Morning", icon: "☀️" },
+  { value: "afternoon", label: "Afternoon", icon: "⛅" },
+  { value: "evening", label: "Evening", icon: "🌙" },
+];
+
 export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) => {
   const { tasks, addTask, updateTask } = useTaskStore();
   const selectedDate = useTaskStore((s) => s.selectedDate);
+  const showToast = useToastStore((s) => s.showToast);
   const editingTask = editingTaskId ? tasks.find((t) => t.id === editingTaskId) : null;
 
   const [title, setTitle] = useState("");
@@ -76,6 +84,7 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
   const [estimatedMinutes, setEstimatedMinutes] = useState(60);
   const [customTime, setCustomTime] = useState("");
   const [isCustom, setIsCustom] = useState(false);
+  const [timePreference, setTimePreference] = useState<TimePreference | undefined>(undefined);
 
   // Reset form when modal opens or editing task changes
   useEffect(() => {
@@ -88,6 +97,7 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
         const isPreset = TIME_PRESETS.includes(editingTask.estimatedMinutes);
         setIsCustom(!isPreset);
         setCustomTime(!isPreset ? minutesToDisplay(editingTask.estimatedMinutes) : "");
+        setTimePreference(editingTask.timePreference ?? undefined);
       } else {
         setTitle("");
         setDescription("");
@@ -95,6 +105,7 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
         setEstimatedMinutes(60);
         setCustomTime("");
         setIsCustom(false);
+        setTimePreference(undefined);
       }
     }
   }, [isOpen, editingTask]);
@@ -111,12 +122,15 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
       priority,
       estimatedMinutes: finalMinutes,
       date: editingTask?.date || selectedDate,
+      timePreference,
     };
 
     if (editingTask) {
       updateTask(editingTask.id, data);
+      showToast("Task updated", "success");
     } else {
       addTask(data);
+      showToast("Task added", "success");
     }
 
     onClose();
@@ -255,6 +269,28 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
             </span>
           </div>
         )}
+      </div>
+
+      {/* Preferred Time */}
+      <div className="form-group">
+        <label className="form-label">
+          Preferred Time <span className="form-label-optional">(optional)</span>
+        </label>
+        <div className="time-preference-selector">
+          {TIME_PREF_OPTIONS.map((p) => (
+            <button
+              key={p.value}
+              type="button"
+              className={`time-pref-chip ${timePreference === p.value ? "selected" : ""}`}
+              onClick={() =>
+                setTimePreference(timePreference === p.value ? undefined : p.value)
+              }
+            >
+              <span className="time-pref-icon">{p.icon}</span>
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
     </Modal>
   );

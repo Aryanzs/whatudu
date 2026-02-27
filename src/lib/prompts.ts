@@ -7,10 +7,10 @@ export const buildTimetablePrompt = (tasks: Task[]): string => {
   const now = new Date();
   const taskList = tasks
     .filter((t) => t.status !== "done")
-    .map(
-      (t) =>
-        `- "${t.title}" | Priority: ${t.priority} | Est. time: ${t.estimatedMinutes}min | ${t.description || "No details"}`
-    )
+    .map((t) => {
+      const pref = t.timePreference ? ` | Preferred time: ${t.timePreference}` : "";
+      return `- "${t.title}" | Priority: ${t.priority} | Est. time: ${t.estimatedMinutes}min${pref} | ${t.description || "No details"}`;
+    })
     .join("\n");
 
   return `You are an expert productivity coach and time management specialist. Generate an optimized daily timetable based on these tasks.
@@ -28,6 +28,9 @@ Rules:
 5. Never schedule more than 2 hours of deep work without a break
 6. Start from the next available hour from now
 7. Respect the estimated time for each task
+8. Respect each task's preferred time slot when specified:
+   - morning = 6:00am–12:00pm, afternoon = 12:00pm–5:00pm, evening = 5:00pm–10:00pm
+   Only override a preference if it creates a severe scheduling conflict.
 
 Respond ONLY with a valid JSON array. No markdown, no backticks, no explanation text. Just the raw JSON array:
 [{"taskTitle":"exact task title from above","startTime":"HH:MM","endTime":"HH:MM","reasoning":"brief reason for this time slot"},{"taskTitle":"Break","startTime":"HH:MM","endTime":"HH:MM","reasoning":"Rest period"}]`;

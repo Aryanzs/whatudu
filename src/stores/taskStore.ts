@@ -13,6 +13,7 @@ interface TaskState {
   addTask: (data: TaskFormData) => void;
   updateTask: (id: string, data: Partial<TaskFormData>) => void;
   deleteTask: (id: string) => void;
+  restoreTask: (task: Task) => void;
   toggleTask: (id: string) => void;
   setFilter: (filter: FilterType) => void;
   setSearchQuery: (query: string) => void;
@@ -58,6 +59,10 @@ export const useTaskStore = create<TaskState>()(
         set((state) => ({
           tasks: state.tasks.filter((t) => t.id !== id),
         }));
+      },
+
+      restoreTask: (task) => {
+        set((state) => ({ tasks: [task, ...state.tasks] }));
       },
 
       toggleTask: (id) => {

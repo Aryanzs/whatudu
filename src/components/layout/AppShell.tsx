@@ -4,6 +4,7 @@ import { TaskList } from "../tasks/TaskList";
 import { TaskModal } from "../tasks/TaskModal";
 import { TimetableView } from "../timetable/TimetableView";
 import { SettingsPage } from "../settings/SettingsPage";
+import { ToastContainer } from "../ui/Toast";
 import { useSettingsStore } from "../../stores/settingsStore";
 
 export const AppShell = () => {
@@ -43,6 +44,7 @@ export const AppShell = () => {
         onClose={handleCloseModal}
         editingTaskId={editingTaskId}
       />
+      <ToastContainer />
     </div>
   );
 };

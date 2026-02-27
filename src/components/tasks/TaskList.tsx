@@ -3,6 +3,7 @@ import { Sparkles, ListTodo, Loader2, ChevronLeft, ChevronRight, Calendar } from
 import { useTaskStore } from "../../stores/taskStore";
 import { useTimetableStore } from "../../stores/timetableStore";
 import { useSettingsStore } from "../../stores/settingsStore";
+import { useToastStore } from "../../stores/toastStore";
 import { chatCompletion } from "../../services/ai";
 import { buildTimetablePrompt } from "../../lib/prompts";
 import { safeParseJSON, toDateString, formatDateLabel } from "../../lib/utils";
@@ -23,9 +24,10 @@ export const TaskList = ({ onAddTask, onEditTask }: TaskListProps) => {
   const selectedDate = useTaskStore((s) => s.selectedDate);
   const setSelectedDate = useTaskStore((s) => s.setSelectedDate);
 
-  const { isGenerating, setIsGenerating, setTimetable, setChatMessages } =
+  const { isGenerating, setIsGenerating, setTimetable, setTimetableDate, setChatMessages } =
     useTimetableStore();
   const { setActiveTab } = useSettingsStore();
+  const showToast = useToastStore((s) => s.showToast);
 
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +61,7 @@ export const TaskList = ({ onAddTask, onEditTask }: TaskListProps) => {
 
       if (parsed && Array.isArray(parsed)) {
         setTimetable(parsed);
+        setTimetableDate(selectedDate);
         setChatMessages([
           { role: "system", content: "Timetable generated! Ask me to rearrange anything." },
           {
@@ -70,11 +73,13 @@ export const TaskList = ({ onAddTask, onEditTask }: TaskListProps) => {
         throw new Error("Could not parse timetable from AI response");
       }
     } catch (err) {
+      const msg = err instanceof Error ? err.message : "Please try again.";
+      showToast(`Generation failed: ${msg}`, "error");
       setChatMessages([
         { role: "system", content: "Timetable generation failed." },
         {
           role: "ai",
-          content: `Sorry, I had trouble generating the timetable. ${err instanceof Error ? err.message : "Please try again."}`,
+          content: `Sorry, I had trouble generating the timetable. ${msg}`,
         },
       ]);
     }
