@@ -144,7 +144,9 @@ body {
   justify-content: space-between;
   padding: 16px 24px;
   border-bottom: 1px solid var(--border-light);
-  background: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -159,7 +161,7 @@ body {
 .logo-mark {
   width: 32px;
   height: 32px;
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
   border-radius: 9px;
   display: flex;
   align-items: center;
@@ -181,6 +183,75 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ─── Sign-in Button ─── */
+
+.btn-sign-in {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-sign-in:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+.btn-sign-in:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Profile Chip ─── */
+
+.profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-secondary);
+  transition: all 0.2s;
+  cursor: default;
+}
+
+.profile-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: -0.3px;
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ─── Navigation Tabs ─── */
@@ -1212,5 +1283,21 @@ textarea.form-input {
 
   .nav-tab span {
     display: none;
+  }
+
+  .btn-sign-in-text {
+    display: none;
+  }
+
+  .btn-sign-in {
+    padding: 7px 10px;
+  }
+
+  .profile-name {
+    display: none;
+  }
+
+  .profile-chip {
+    padding: 4px;
   }
 }

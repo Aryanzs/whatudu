@@ -28,7 +28,7 @@ export const AppShell = () => {
 
   return (
     <div className="app-container">
-      <Header onAddTask={handleAddTask} />
+      <Header />
 
       <div className="content">
         {activeTab === "tasks" && (

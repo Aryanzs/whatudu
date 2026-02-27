@@ -1,10 +1,7 @@
-import { ListTodo, Calendar, Settings, Plus } from "lucide-react";
+import { ListTodo, Calendar, Settings, LogIn } from "lucide-react";
 import { useSettingsStore } from "../../stores/settingsStore";
+import { usePuter } from "../../hooks/usePuter";
 import type { TabId } from "../../types";
-
-interface HeaderProps {
-  onAddTask: () => void;
-}
 
 const tabs: { id: TabId; label: string; icon: typeof ListTodo }[] = [
   { id: "tasks", label: "Tasks", icon: ListTodo },
@@ -12,8 +9,9 @@ const tabs: { id: TabId; label: string; icon: typeof ListTodo }[] = [
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-export const Header = ({ onAddTask }: HeaderProps) => {
+export const Header = () => {
   const { activeTab, setActiveTab } = useSettingsStore();
+  const { isReady, isSignedIn, username, signIn } = usePuter();
 
   return (
     <header className="header">
@@ -36,10 +34,21 @@ export const Header = ({ onAddTask }: HeaderProps) => {
       </nav>
 
       <div className="header-actions">
-        {activeTab === "tasks" && (
-          <button className="btn btn-primary btn-sm" onClick={onAddTask}>
-            <Plus size={14} />
-            <span>Add</span>
+        {isSignedIn ? (
+          <div className="profile-chip">
+            <div className="profile-avatar">
+              {username ? username[0].toUpperCase() : "?"}
+            </div>
+            <span className="profile-name">{username}</span>
+          </div>
+        ) : (
+          <button
+            className="btn-sign-in"
+            onClick={signIn}
+            disabled={!isReady}
+          >
+            <LogIn size={14} />
+            <span className="btn-sign-in-text">Sign in</span>
           </button>
         )}
       </div>
