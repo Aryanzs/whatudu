@@ -115,14 +115,16 @@ export const TaskList = ({ onAddTask, onEditTask }: TaskListProps) => {
             </span>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="tasks-header-actions">
           <button
             className="btn-ai"
             onClick={handleGenerate}
             disabled={isGenerating || activeTasks.length === 0}
           >
             {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-            {isGenerating ? "Generating..." : "Generate Timetable"}
+            <span className="btn-generate-label">
+              {isGenerating ? "Generating..." : "Generate Timetable"}
+            </span>
           </button>
           <button className="btn btn-primary" onClick={onAddTask}>
             + Add Task
@@ -147,7 +149,11 @@ export const TaskList = ({ onAddTask, onEditTask }: TaskListProps) => {
         >
           <Calendar size={14} />
           <span className="date-label-text">{dateLabel}</span>
-          <span className="date-label-full">{!isToday ? ` · ${fullDate.split(",").slice(0, 2).join(",")}` : ""}</span>
+          {!isToday && (
+            <span className="date-label-full">
+              · {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            </span>
+          )}
           <input
             ref={dateInputRef}
             type="date"
