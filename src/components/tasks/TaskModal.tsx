@@ -11,6 +11,60 @@ interface TaskModalProps {
   editingTaskId: string | null;
 }
 
+/**
+ * Parse flexible time strings into total minutes.
+ * Accepts: "1h 25m", "1h25m", "1:25", "1.5h", "45m", "90" (plain = minutes)
+ */
+const parseTimeInput = (value: string): number | null => {
+  const s = value.trim().toLowerCase();
+  if (!s) return null;
+
+  // "1h 25m", "1h25m", "1hr 25min", "1 hour 25 minutes"
+  const hmMatch = s.match(
+    /^(\d+(?:\.\d+)?)\s*h(?:r|rs|our|ours)?\s+(\d+)\s*m?(?:in|ins|inute|inutes)?$|^(\d+(?:\.\d+)?)\s*h(?:r|rs|our|ours)?(\d+)\s*m?(?:in|ins|inute|inutes)?$/
+  );
+  if (hmMatch) {
+    const hours = parseFloat(hmMatch[1] ?? hmMatch[3]);
+    const mins = parseInt(hmMatch[2] ?? hmMatch[4]);
+    return Math.round(hours * 60) + mins;
+  }
+
+  // "1:25" (h:mm)
+  const colonMatch = s.match(/^(\d+):(\d{1,2})$/);
+  if (colonMatch) {
+    return parseInt(colonMatch[1]) * 60 + parseInt(colonMatch[2]);
+  }
+
+  // "1.5h", "2h", "1 hour"
+  const hourMatch = s.match(/^(\d+(?:\.\d+)?)\s*h(?:r|rs|our|ours)?$/);
+  if (hourMatch) {
+    return Math.round(parseFloat(hourMatch[1]) * 60);
+  }
+
+  // "45m", "45min", "45 minutes"
+  const minMatch = s.match(/^(\d+)\s*m(?:in|ins|inute|inutes)?$/);
+  if (minMatch) {
+    return parseInt(minMatch[1]);
+  }
+
+  // Plain number → minutes
+  const numMatch = s.match(/^(\d+)$/);
+  if (numMatch) {
+    return parseInt(numMatch[1]);
+  }
+
+  return null;
+};
+
+/** Convert stored minutes to a human-friendly display string */
+const minutesToDisplay = (minutes: number): string => {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h > 0 && m > 0) return `${h}h ${m}m`;
+  if (h > 0) return `${h}h`;
+  return `${m}m`;
+};
+
 export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) => {
   const { tasks, addTask, updateTask } = useTaskStore();
   const selectedDate = useTaskStore((s) => s.selectedDate);
@@ -31,10 +85,9 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
         setDescription(editingTask.description);
         setPriority(editingTask.priority);
         setEstimatedMinutes(editingTask.estimatedMinutes);
-        // Check if current time matches a preset
         const isPreset = TIME_PRESETS.includes(editingTask.estimatedMinutes);
         setIsCustom(!isPreset);
-        setCustomTime(!isPreset ? String(editingTask.estimatedMinutes) : "");
+        setCustomTime(!isPreset ? minutesToDisplay(editingTask.estimatedMinutes) : "");
       } else {
         setTitle("");
         setDescription("");
@@ -49,8 +102,8 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
   const handleSubmit = () => {
     if (!title.trim()) return;
 
-    const finalMinutes = isCustom && customTime ? parseInt(customTime, 10) : estimatedMinutes;
-    if (isNaN(finalMinutes) || finalMinutes <= 0) return;
+    const finalMinutes = isCustom ? (parseTimeInput(customTime) ?? 0) : estimatedMinutes;
+    if (finalMinutes <= 0) return;
 
     const data = {
       title: title.trim(),
@@ -81,13 +134,15 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
   };
 
   const handleCustomTimeChange = (value: string) => {
-    // Only allow numbers
-    const num = value.replace(/[^0-9]/g, "");
-    setCustomTime(num);
-    if (num) {
-      setEstimatedMinutes(parseInt(num, 10));
+    setCustomTime(value);
+    const parsed = parseTimeInput(value);
+    if (parsed && parsed > 0) {
+      setEstimatedMinutes(parsed);
     }
   };
+
+  const parsedCustomMinutes = parseTimeInput(customTime);
+  const customIsValid = parsedCustomMinutes !== null && parsedCustomMinutes > 0;
 
   return (
     <Modal
@@ -102,7 +157,7 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
           <button
             className="btn btn-primary"
             onClick={handleSubmit}
-            disabled={!title.trim() || (isCustom && (!customTime || parseInt(customTime) <= 0))}
+            disabled={!title.trim() || (isCustom && !customIsValid)}
           >
             {editingTask ? "Update Task" : "Add Task"}
           </button>
@@ -181,23 +236,22 @@ export const TaskModal = ({ isOpen, onClose, editingTaskId }: TaskModalProps) =>
 
         {/* Custom time input */}
         {isCustom && (
-          <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="custom-time-input">
             <input
-              className="form-input"
+              className={`form-input ${customTime && !customIsValid ? "input-error" : ""}`}
               type="text"
-              inputMode="numeric"
-              placeholder="Enter minutes"
+              placeholder="e.g. 1h 25m, 1:25, 90"
               value={customTime}
               onChange={(e) => handleCustomTimeChange(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-              style={{ width: 140 }}
               autoFocus
             />
-            <span style={{ fontSize: 13, color: "var(--text-tertiary)" }}>
-              minutes
-              {customTime && parseInt(customTime) > 0 && (
-                <> ({formatDuration(parseInt(customTime))})</>
-              )}
+            <span className="custom-time-hint">
+              {customTime
+                ? customIsValid
+                  ? formatDuration(parsedCustomMinutes!)
+                  : "Invalid — try 1h 25m, 1:25 or 90"
+                : "hours, h:mm or minutes"}
             </span>
           </div>
         )}

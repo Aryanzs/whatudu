@@ -1,4 +1,4 @@
-const CACHE_NAME = "whatodo-v1";
+const CACHE_NAME = "whatodo-v2";
 const STATIC_ASSETS = ["/", "/index.html"];
 
 self.addEventListener("install", (event) => {
@@ -22,14 +22,32 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // Network-first for API calls, cache-first for static assets
-  if (event.request.url.includes("/api/") || event.request.url.includes("puter")) {
+  const url = event.request.url;
+
+  // Always network-first for API/AI calls
+  if (url.includes("/api/") || url.includes("puter") || url.includes("fonts.googleapis")) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );
-  } else {
-    event.respondWith(
-      caches.match(event.request).then((cached) => cached || fetch(event.request))
-    );
+    return;
   }
+
+  // Network-first for JS/CSS assets so new builds are always served fresh
+  if (url.match(/\.(js|css)(\?.*)?$/)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Cache-first for other static assets (images, fonts, etc.)
+  event.respondWith(
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
+  );
 });
